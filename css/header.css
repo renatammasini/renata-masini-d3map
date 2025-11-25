@@ -1,0 +1,123 @@
+header {
+  padding: 1.25rem;
+  background-color: var(--white);
+  position: fixed;
+  width: 100%;
+  /* margin-top: 0; */
+  top: 0vh;
+  box-shadow: 10px 5px 5px var(--black);
+  z-index: 10;
+
+  a {
+    font-family: "Turret Road", serif;
+    text-decoration: none;
+    color: var(--black);
+    text-transform: uppercase;
+    letter-spacing: 0.75rem;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+  a:hover {
+    color: var(--pink);
+  }
+
+  & ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  & .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    & > .menu {
+      display: flex;
+      column-gap: 2rem;
+    }
+
+    & li {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+/* test below */
+
+header .button {
+  display: none;
+}
+
+.button {
+  appearance: none;
+  border: 0px solid transparent;
+  background-color: transparent;
+  color: var(--black);
+  font-family: "Turret Road", serif;
+  /* text-decoration: none; */
+  text-transform: uppercase;
+  letter-spacing: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: 0.5s all ease;
+}
+
+.button:hover {
+  color: var(--pink);
+}
+
+.button:active {
+  color: var(--pink);
+}
+
+body > nav {
+  position: absolute;
+  width: 200px;
+  background-color: var(--white);
+  bottom: 0;
+  top: 0;
+  padding: 1.25rem;
+  color: var(--black);
+  right: -200px;
+
+  transition: 0.5s all ease-in-out;
+}
+
+body.menu-is-open > nav {
+  transform: translateX(-200px);
+}
+
+body > nav li {
+  list-style: none;
+  margin-bottom: 0.75rem;
+}
+
+body nav a {
+  font-family: "Turret Road", serif;
+  text-decoration: none;
+  color: var(--black);
+  text-transform: uppercase;
+  letter-spacing: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: 0.25s all ease-in;
+}
+
+a:hover {
+  color: var(--pink);
+}
+
+#nav-mobile {
+  display: none;
+  z-index: 20;
+}
+
+@media screen and (max-width: 600px) {
+  header .button {
+    display: block;
+  }
+  #nav-mobile {
+    display: block;
+  }
+}

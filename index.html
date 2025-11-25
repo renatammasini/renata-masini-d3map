@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/index.css" />
+
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+    <title>A Map of moments</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="content-wrapper">
+        <nav>
+          <ul class="row">
+            <div>
+              <div>
+                <li>
+                  <a href="https://readymag.website/renatamasini/4109566/"
+                    >RM</a
+                  >
+                </li>
+              </div>
+            </div>
+            <div class="menu">
+              <li>
+                <a href="https://readymag.website/renatamasini/4109566/"
+                  >Works</a
+                >
+              </li>
+              <li>
+                <a href="https://readymag.website/renatamasini/4109566/about/"
+                  >About</a
+                >
+              </li>
+            </div>
+          </ul>
+        </nav>
+        <button class="js-nav button">RM</button>
+      </div>
+    </header>
+    <main>
+      <div class="content-wrapper">
+        <h1>A Map of moments</h1>
+        <p>
+          Every pin on this map tells a small story — a sound, a color, a
+          memory. In 2025, I followed the rhythm of live music and the hush of
+          gallery halls, collecting experiences across cities and borders. This
+          is a visual diary of the places and people that filled my year with
+          art.
+        </p>
+      </div>
+      <div class="test">
+        <div id="map-wrapper">
+          <svg id="my_dataviz"></svg>
+        </div>
+        <button id="resetZoom">Reset Zoom</button>
+      </div>
+      <div class="test">
+        <div id="scatter-wrapper">
+          <svg id="scatter"></svg>
+        </div>
+      </div>
+      <div class="content-wrapper">
+        <div class="callouts">
+          <article>
+            <h1>43</h1>
+            <div>
+              <h2>Concerts</h2>
+              <p>
+                Nights of sound and energy, each one a heartbeat in the rhythm
+                of the year.
+              </p>
+            </div>
+          </article>
+          <article>
+            <h1>14</h1>
+            <div>
+              <h2>Countries</h2>
+              <p>Sounds and stories from 14 different countries.</p>
+            </div>
+          </article>
+          <article>
+            <h1>+60</h1>
+            <div>
+              <h2>hours of fun</h2>
+              <p>
+                A year measured not in minutes, but in memories worth lingering
+                on.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </main>
+    <footer class="footer">
+      <div>
+        <a href="https://www.instagram.com/rntk/">
+          <img src="./images/Instagram_Glyph_White.svg" alt="instagram" />
+        </a>
+        <a href="https://www.linkedin.com/in/renatammasini/">
+          <img src="./images/InBug-White.png" alt="linkedin" />
+        </a>
+        <p>Copyright &copy; <date datetime="2025">2025</date>, Renata Masini</p>
+      </div>
+    </footer>
+    <nav id="nav-mobile">
+      <!-- hidden for desktop use -->
+      <!-- visible for mobile -->
+      <button class="js-nav button" id="close-button">Close</button>
+      <ul>
+        <li>
+          <a href="https://readymag.website/renatamasini/4109566/">Works</a>
+        </li>
+        <li>
+          <a href="https://readymag.website/renatamasini/4109566/about/"
+            >About</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </body>
+  <script type="module" src="./js/main.js"></script>
+  <script type="module" src="./js/map.js"></script>
+  <!-- <script type="module" src="./js/scatter.js"></script> -->
+</html>

@@ -111,9 +111,15 @@ function drawMap(error, dataGeo, data) {
     .style("fill", "var(--white)")
     .style("font-size", 10);
 
-  legendText.append("tspan").style("font-weight", "bold").text("Bubble: ");
+  legendText.append("tspan").style("font-weight", "bold").text("Bubbles: ");
 
-  legendText.append("tspan").text("Number of monthly listeners on Spotify");
+  legendText
+    .append("tspan")
+    .text(
+      "Size: Number of monthly listeners on Spotify, Position: Country of origin"
+    );
+
+  legendText.append("tspan").text("Position: Country of origin");
 
   // Add legend: circles
   let valuesToShow = [10, 100000, 35000000];
@@ -195,9 +201,11 @@ function drawMap(error, dataGeo, data) {
 
       tooltip
         .html(
-          "<h3>" +
+          "<h3><a href='" +
+            d.link +
+            "' target='_blank' rel='noopener noreferrer' style='color:black;'>" +
             d.band +
-            "</h3>" +
+            "</a></h3>" +
             "<hr>" +
             "<strong>Date:</strong> " +
             d.date +
@@ -210,6 +218,7 @@ function drawMap(error, dataGeo, data) {
         )
         .style("font-family", '"IBM Plex Mono", sans-serif')
         .style("font-size", "10px")
+        .style("line-height", "1.5")
         .style("line-height", "1.5")
         .style("visibility", "visible");
     })

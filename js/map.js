@@ -5,6 +5,8 @@ let geoJsonData =
 let svg = d3.select("#my_dataviz");
 let width = svg.node().parentNode.getBoundingClientRect().width;
 let height = svg.node().parentNode.getBoundingClientRect().height;
+let marginLeft = 50;
+let marginBottom = 75;
 
 // Apply the size to the SVG (needed for D3 to draw correctly)
 svg
@@ -25,7 +27,10 @@ d3.queue()
   .await(drawMap);
 
 function drawMap(error, dataGeo, data) {
-  // console.log(data);
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   // Create a color scale
   let hapiness = d3
@@ -45,16 +50,16 @@ function drawMap(error, dataGeo, data) {
     .domain(valueExtent) // What's in the data
     .range([5, 15]); // Size in pixel
 
-  // add rectangle to helpo with the zoom
-  let zoomRect = svg
+  // add rectangle to help with the zoom (captures pointer events)
+  svg
     .append("rect")
     .attr("width", width)
     .attr("height", height)
     .style("fill", "transparent")
     .style("pointer-events", "all");
 
-  // Draw the map
-  let mymap = svg.append("g");
+  // Draw the map group
+  let mymap = svg.append("g").attr("class", "map-group");
 
   mymap
     .selectAll("path")
@@ -64,73 +69,142 @@ function drawMap(error, dataGeo, data) {
     .attr("fill", "var(--darkgray)")
     .attr("d", d3.geoPath().projection(projection))
     .style("stroke", "none");
-  // .style("opacity", 0.3);
 
-  // Add circles:
-  mymap
-    .selectAll("myCircles")
-    .data(
-      data
-        .sort(function (a, b) {
-          return +b.spotify - +a.spotify;
-        })
-        .filter(function (d, i) {
-          return i < 1000;
-        })
-    )
+  // --- Prepare the data subset we'll display (sorted + filtered) ---
+  // NOTE: operate on a copy so we don't mutate original array unexpectedly
+  let filtered = data
+    .slice()
+    .sort(function (a, b) {
+      return +b.spotify - +a.spotify;
+    })
+    .filter(function (d, i) {
+      return i < 1000;
+    });
+
+  // Give each node initial coordinates based on the projection
+  filtered.forEach((d) => {
+    const [px, py] = projection([, +d.l + d.lonat]);
+    d.x = px;
+    d.y = py;
+  });
+
+  // Compute country-level cluster centers using only filtered nodes
+  let countryCenters = {};
+  filtered.forEach((d) => {
+    const [px, py] = projection([+d.lon, +d.lat]);
+    if (!countryCenters[d.origin])
+      countryCenters[d.origin] = { x: 0, y: 0, n: 0 };
+    countryCenters[d.origin].x += px;
+    countryCenters[d.origin].y += py;
+    countryCenters[d.origin].n += 1;
+  });
+  Object.keys(countryCenters).forEach((key) => {
+    const c = countryCenters[key];
+    c.x = c.x / c.n;
+    c.y = c.y / c.n;
+  });
+
+  // --- Create circles ONCE (single, reliable selection) ---
+  // Use a class name for the selection to avoid surprises
+  let circles = mymap
+    .selectAll(".show-circle")
+    .data(filtered, (d) => d.band + "|" + d.date) // key function (optional)
     .enter()
     .append("circle")
-    .attr("cx", function (d) {
-      return projection([+d.lon, +d.lat])[0];
-    })
-    .attr("cy", function (d) {
-      return projection([+d.lon, +d.lat])[1];
-    })
-    .attr("r", function (d) {
-      return size(+d.spotify);
-    })
-    .style("fill", function (d) {
-      return color(d.hapiness);
-    })
-    .attr("stroke", function (d) {
-      if (d.n > 2000) {
-        return "black";
-      } else {
-        return "none";
-      }
-    })
+    .attr("class", "show-circle")
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y)
+    .attr("r", (d) => size(+d.spotify))
+    .style("fill", (d) => color(d.hapiness))
+    .attr("stroke", (d) => (+d.n > 2000 ? "black" : "none"))
     .attr("stroke-width", 1)
     .attr("fill-opacity", 0.4)
     .style("cursor", "pointer");
 
-  // Add title and explanation
-  let legendText = svg
-    .append("text")
-    .attr("x", 10)
-    .attr("y", height - 50)
-    .style("fill", "var(--white)")
-    .style("font-size", 10);
+  // --- Force simulation: cluster by country + collide ---
+  // Use the filtered nodes array as simulation nodes
+  let simulation = d3
+    .forceSimulation(filtered)
+    .force(
+      "clusterX",
+      d3
+        .forceX((d) =>
+          countryCenters[d.origin] ? countryCenters[d.origin].x : d.x
+        )
+        .strength(0.9)
+    )
+    .force(
+      "clusterY",
+      d3
+        .forceY((d) =>
+          countryCenters[d.origin] ? countryCenters[d.origin].y : d.y
+        )
+        .strength(0.5)
+    )
+    // collide radius: use the actual pixel radius (size) plus small padding
+    .force(
+      "collide",
+      d3.forceCollide((d) => size(+d.spotify) + 2)
+    )
+    .stop();
 
-  legendText.append("tspan").style("font-weight", "bold").text("Bubbles: ");
+  // Run a few ticks so layout is resolved immediately (no animation)
+  for (let i = 0; i < 180; ++i) simulation.tick();
 
-  legendText
-    .append("tspan")
-    .text(
-      "Size: Number of monthly listeners on Spotify, Position: Country of origin"
+  // Apply the final positions to circles
+  mymap
+    .selectAll(".show-circle")
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y);
+
+  // --- Legend (kept same as before) ---
+  // let legendText = svg
+  //   .append("text")
+  //   .attr("x", marginLeft)
+  //   .attr("y", height - 50)
+  //   .style("fill", "var(--white)")
+  //   .style("font-size", 10);
+
+  // legendText.append("tspan").style("font-weight", "bold").text("Bubbles: ");
+
+  // legendText
+  //   .append("tspan")
+  //   .text(
+  //     "Size: Number of monthly listeners on Spotify, Position: Country of origin"
+  //   );
+
+  // legendText.append("stpan").text("Position: Country of origin");
+
+  let newleg = svg
+    .append("foreignObject")
+    .attr("x", marginLeft)
+    .attr("y", height - marginBottom)
+    .attr("width", 500)
+    .attr("height", 30)
+    .style("font-size", 10)
+    .style("color", "var(--white)");
+
+  newleg
+    .append("xhtml:div")
+    .html(
+      "Size: Number of monthly listeners on Spotify </br> Position: Country of origin"
     );
-
-  legendText.append("tspan").text("Position: Country of origin");
 
   // Add legend: circles
   let valuesToShow = [10, 100000, 35000000];
-  let xCircle = 40;
+  // let xCircle = 14;
   let xLabel = 90;
+
   svg
     .selectAll("legend")
     .data(valuesToShow)
     .enter()
     .append("circle")
-    .attr("cx", xCircle)
+    // .attr("cx", marginLeft)
+    .attr("cx", function (d) {
+      // calcular metade do círculo
+      return marginLeft;
+    })
     .attr("cy", function (d) {
       return height - size(d);
     })
@@ -147,7 +221,7 @@ function drawMap(error, dataGeo, data) {
     .enter()
     .append("line")
     .attr("x1", function (d) {
-      return xCircle + size(d);
+      return marginLeft + size(d);
     })
     .attr("x2", xLabel)
     .attr("y1", function (d) {
@@ -176,11 +250,11 @@ function drawMap(error, dataGeo, data) {
     .style("fill", "var(--white)")
     .attr("alignment-baseline", "middle");
 
-  // add TOOLTIPS
-
+  // --- Tooltip (single tooltip element) ---
   let tooltip = d3
     .select("#map-wrapper")
     .append("div")
+    .attr("class", "map-tooltip")
     .style("position", "absolute")
     .style("visibility", "hidden")
     .style("background-color", "white")
@@ -188,11 +262,12 @@ function drawMap(error, dataGeo, data) {
     .style("border-width", "1px")
     .style("border-radius", "3px")
     .style("padding", "10px")
-    .style("opacity", 0.7);
+    .style("opacity", 0.9)
+    .style("pointer-events", "none"); // avoid blocking mouse events
 
-  // Show, move and hide the tooltip
+  // Show, move and hide the tooltip: attach to the circles selection we created
   mymap
-    .selectAll("circle")
+    .selectAll(".show-circle")
     .on("mouseover", function (d) {
       d3.select(this)
         .transition()
@@ -219,11 +294,10 @@ function drawMap(error, dataGeo, data) {
         .style("font-family", '"IBM Plex Mono", sans-serif')
         .style("font-size", "10px")
         .style("line-height", "1.5")
-        .style("line-height", "1.5")
         .style("visibility", "visible");
     })
     .on("mousemove", function (d) {
-      // Use d3.mouse to get mouse coordinates relative to the wrapper
+      // get mouse coords relative to wrapper
       let wrapper = document.querySelector("#map-wrapper");
       let coords = d3.mouse(wrapper); // [x, y] relative to wrapper
       tooltip
@@ -235,8 +309,7 @@ function drawMap(error, dataGeo, data) {
       tooltip.style("visibility", "hidden");
     });
 
-  // ZOOM
-
+  // --- ZOOM ---
   let zoom = d3
     .zoom()
     .scaleExtent([1, 8])
@@ -254,4 +327,4 @@ function drawMap(error, dataGeo, data) {
     svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
   }
 }
-// end of ready() function - - - - - - -
+// end of drawMap()

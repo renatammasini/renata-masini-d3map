@@ -178,7 +178,7 @@ function drawMap(error, dataGeo, data) {
 
   let newleg = svg
     .append("foreignObject")
-    .attr("x", marginLeft)
+    // .attr("x", marginLeft)
     .attr("y", height - marginBottom)
     .attr("width", 500)
     .attr("height", 30)
@@ -248,7 +248,7 @@ function drawMap(error, dataGeo, data) {
     .text(function (d) {
       return d;
     })
-    .style("font-size", 10)
+    .style("font-size", 8)
     .style("fill", "var(--white)")
     .attr("alignment-baseline", "middle");
 

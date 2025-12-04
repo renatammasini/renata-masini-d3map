@@ -7,6 +7,7 @@ let width = svg.node().parentNode.getBoundingClientRect().width;
 let height = svg.node().parentNode.getBoundingClientRect().height;
 let marginLeft = 50;
 let marginBottom = 75;
+// const color = d3.scaleOrdinal(d3.schemePiYG[9]);
 
 // Apply the size to the SVG (needed for D3 to draw correctly)
 svg
@@ -35,10 +36,10 @@ function drawMap(error, dataGeo, data) {
   // Create a color scale
   let hapiness = d3
     .map(data, function (d) {
-      return d.hapiness;
+      return d.happiness;
     })
     .keys();
-  let color = d3.scaleOrdinal().domain(hapiness).range(d3.schemeAccent);
+  let color = d3.scaleOrdinal(d3.schemeBrBG[3]);
 
   // Add a scale for bubble size
   let valueExtent = d3.extent(data, function (d) {
@@ -48,7 +49,7 @@ function drawMap(error, dataGeo, data) {
   let size = d3
     .scaleSqrt()
     .domain(valueExtent) // What's in the data
-    .range([5, 15]); // Size in pixel
+    .range([3, 15]); // Size in pixel
 
   // add rectangle to help with the zoom (captures pointer events)
   svg
@@ -186,12 +187,13 @@ function drawMap(error, dataGeo, data) {
 
   newleg
     .append("xhtml:div")
+    .style("font-family", '"IBM Plex Mono", sans-serif')
     .html(
-      "Size: Number of monthly listeners on Spotify </br> Position: Country of origin"
+      "<b>Size:</b> Number of monthly listeners on Spotify </br> <b>Position:</b> Country of origin"
     );
 
   // Add legend: circles
-  let valuesToShow = [10, 100000, 35000000];
+  let valuesToShow = [10, 10000000, 35000000];
   // let xCircle = 14;
   let xLabel = 90;
 
@@ -276,11 +278,9 @@ function drawMap(error, dataGeo, data) {
 
       tooltip
         .html(
-          "<h3><a href='" +
-            d.link +
-            "' target='_blank' rel='noopener noreferrer' style='color:black;'>" +
+          "<h3>" +
             d.band +
-            "</a></h3>" +
+            "</h3>" +
             "<hr>" +
             "<strong>Date:</strong> " +
             d.date +
@@ -296,6 +296,7 @@ function drawMap(error, dataGeo, data) {
         .style("line-height", "1.5")
         .style("visibility", "visible");
     })
+
     .on("mousemove", function (d) {
       // get mouse coords relative to wrapper
       let wrapper = document.querySelector("#map-wrapper");
@@ -307,6 +308,11 @@ function drawMap(error, dataGeo, data) {
     .on("mouseout", function (d) {
       d3.select(this).transition().duration(200).attr("r", size(+d.spotify));
       tooltip.style("visibility", "hidden");
+    })
+    .on("click", function (d) {
+      if (d.link) {
+        window.open(d.link, "_blank", "noopener,noreferrer");
+      }
     });
 
   // --- ZOOM ---
